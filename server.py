@@ -15,29 +15,34 @@ PORT = 9999  # Port för din befintliga kommunikation
 # Flask-rutter
 @app.route('/')
 def index():
+    """Returnera HTML-sidan för skärmdelning."""
     return render_template('index.html')
 
-@socketio.on('input')
+# Hantera inmatning från klienter
+@socketio.on('input', namespace='/my_namespace')
 def handle_input(data):
-    emit('input', data, broadcast=True)  # Vidarebefordra input till klienten
+    """
+    Tar emot tangentbord/mus-inmatning från webbsidan och 
+    skickar den till alla anslutna klienter.
+    """
+    print(f"Server tar emot inmatning: {data}")
+    emit('input', data, broadcast=True, namespace='/my_namespace')
 
-@socketio.on('screen')
+# Hantera skärmdelning
+@socketio.on('screen', namespace='/my_namespace')
 def handle_screen(data):
-    emit('stream', data, broadcast=True)  # Sänd skärmdelningen till webbsidan
-
-# Din befintliga serverlogik
-def start_socket_server():
-
-   def handle_screen(data):
+    """
+    Tar emot skärmbild från klienten och skickar vidare till webbsidan.
+    """
+    print(f"Server tar emot bilddata, storlek: {len(data['image'])} bytes")
     emit('stream', data, broadcast=True, namespace='/my_namespace')
 
-
-
-    emit('stream', data, broadcast=True, namespace='/')
-
-@socketio.on('input', namespace='/')
-def handle_input(data):
-    emit('input', data, broadcast=True, namespace='/')
+# Din befintliga serverlogik (socket-server)
+def start_socket_server():
+    """
+    Hanterar den befintliga socket-servern för att lyssna på inkommande
+    anslutningar och köra kommandon.
+    """
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((HOST, PORT))
         s.listen(1)
@@ -61,5 +66,8 @@ def handle_input(data):
 
 # Starta Flask och SocketIO
 if __name__ == '__main__':
-    socketio.start_background_task(target=start_socket_server)  # Kör din server i bakgrunden
+    # Starta din befintliga socket-server i en bakgrundsuppgift
+    socketio.start_background_task(target=start_socket_server)
+    
+    # Kör Flask-servern med SocketIO
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)

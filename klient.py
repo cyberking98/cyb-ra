@@ -26,6 +26,7 @@ def handle_input(data):
 def disconnect():
     print("Frånkopplad från servern.")
 
+
 def stream_screen():
     """Fångar skärmbilder och skickar till servern."""
     with mss.mss() as sct:
@@ -34,8 +35,9 @@ def stream_screen():
             # Minska bildstorleken för bättre prestanda
             img_bytes = base64.b64encode(screenshot.rgb).decode('utf-8')  
             if sio.connected:
-                print(f"Skickar bilddata, storlek: {len(img_bytes)} bytes")
+                print(f"Skickar bilddata, storlek: {len(img_bytes)} bytes")  # Debugutskrift
                 sio.emit('screen', {'image': img_bytes}, namespace='/my_namespace')
+
 
 if __name__ == '__main__':
     try:
