@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remote Control</title>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+</head>
+<body>
+    <h1>Remote Screen</h1>
+    <img id="screen" alt="Remote screen" style="width: 100%; border: 1px solid black;">
+    <script>
+        const socket = io('/my_namespace');
+        const img = document.getElementById('screen');
+
+        // Ta emot bildström från servern
+        socket.on('stream', (data) => {
+            console.log("Mottar bilddata på webbsidan");
+            img.src = `data:image/jpeg;base64,${data.image}`;
+        });
+
+        // Skicka tangentbordsinmatning till servern
+        document.addEventListener('keydown', (e) => {
+            socket.emit('input', { type: 'keyboard', key: e.key });
+        });
+
+        // Skicka musrörelse till servern
+        document.addEventListener('mousemove', (e) => {
+            socket.emit('input', { type: 'mouse_move', x: e.clientX, y: e.clientY });
+        });
+
+        // Skicka musklick till servern
+        document.addEventListener('click', () => {
+            socket.emit('input', { type: 'mouse_click', button: 'left', count: 1 });
+        });
+    </script>
+</body>
+</html>
